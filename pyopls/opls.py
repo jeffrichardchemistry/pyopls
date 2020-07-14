@@ -76,6 +76,8 @@ class OPLS(BaseEstimator, TransformerMixin):
         self.y_mean_ = None
         self.x_std_ = None
         self.y_std_ = None
+        
+        self.loadings_ = None
 
     def fit(self, X, Y):
         """Fit model to data
@@ -108,10 +110,12 @@ class OPLS(BaseEstimator, TransformerMixin):
         W_ortho = []
         T_ortho = []
         P_ortho = []
-
+        
+        loadings = {}
         for i in range(self.n_components):
             t = np.dot(Z, w)  # scores vector
             p = np.dot(Z.T, t) / np.dot(t.T, t).item()  # loadings of X
+            loadings['Component {}'.format(i)] = p.ravel() #store array in 1D form
             w_ortho = p - np.dot(w.T, p).item() / np.dot(w.T, w).item() * w  # orthogonal weight
             w_ortho = w_ortho / np.linalg.norm(w_ortho)  # normalize orthogonal weight
             t_ortho = np.dot(Z, w_ortho)  # orthogonal components
@@ -120,7 +124,8 @@ class OPLS(BaseEstimator, TransformerMixin):
             W_ortho.append(w_ortho)
             T_ortho.append(t_ortho)
             P_ortho.append(p_ortho)
-
+        
+        self.loadings_ = loadings
         self.W_ortho_ = np.hstack(W_ortho)
         self.T_ortho_ = np.hstack(T_ortho)
         self.P_ortho_ = np.hstack(P_ortho)
